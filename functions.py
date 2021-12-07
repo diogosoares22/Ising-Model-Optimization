@@ -46,7 +46,7 @@ def get_random_difference_node(y):
             numbers.append(i)
     return random.choice(numbers)
 
-def bfs(visited, graph, node):
+def bfs(visited, graph, node, allowed_edges):
     """ breadth first search for a given node """
     visited = []   # List to keep track of visited nodes.
     queue = []     # Initialize a queue
@@ -59,7 +59,7 @@ def bfs(visited, graph, node):
 
         for possible_neighbour in range(len(graph[s])):
             neighbour = graph[s][possible_neighbour]
-            if neighbour == 1 and possible_neighbour not in visited:
+            if neighbour == 1 and allowed_edges[possible_neighbour] == -1 and possible_neighbour not in visited:
                 visited.append(possible_neighbour)
                 queue.append(possible_neighbour)
     return visited

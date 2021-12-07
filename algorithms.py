@@ -43,7 +43,10 @@ def metropolis_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_fun
             best_X = X
         
         beta = beta_update_func(beta)
-    
+
+    if (debug):
+        print("Ground_truth energy " + str(funcs.hamiltonian_of_gibbs_model(ground_truth)))
+        print("Best energy found " + str(lowest_energy))
     return best_X, energies, overlaps
 
 def houdayer_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func, n0=1, seed=None, debug=True):
@@ -63,6 +66,9 @@ def houdayer_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func,
     
     energies = [energy]
     local_overlaps = [compute_local_overlap(X1, X2)]
+
+    overlap = (compute_overlap(ground_truth, X1) + compute_overlap(ground_truth, X2)) / 2
+    overlaps = [overlap]
     
     for i in range(steps // n0):
         
@@ -70,19 +76,25 @@ def houdayer_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func,
 
         ind = get_random_difference_node(local_overlaps[-1])
 
-        cluster_nodes = bfs([], graph, ind)
+        energy = funcs.hamiltonian_of_gibbs_model(X1) + funcs.hamiltonian_of_gibbs_model(X2)
+
+        cluster_nodes = bfs([], graph, ind, local_overlaps[-1])
 
         for node in cluster_nodes:
             X1[node] *= -1
             X2[node] *= -1
 
+        energy = funcs.hamiltonian_of_gibbs_model(X1) + funcs.hamiltonian_of_gibbs_model(X2)
+
         # step 3
 
-        X1, _, _ = metropolis_algorithm(graph, ground_truth, a, b, n0, beta, beta_update_func, X=X1, debug=False)
+        X1, _, metropolis_overlaps_X1 = metropolis_algorithm(graph, ground_truth, a, b, n0, beta, beta_update_func, X=X1, debug=False)
 
-        X2, _ , _ = metropolis_algorithm(graph, ground_truth, a, b, n0, beta, beta_update_func, X=X2, debug=False)
-        
+        X2, _ , metropolis_overlaps_X2 = metropolis_algorithm(graph, ground_truth, a, b, n0, beta, beta_update_func, X=X2, debug=False)
+
         energy = funcs.hamiltonian_of_gibbs_model(X1) + funcs.hamiltonian_of_gibbs_model(X2)
+
+        overlaps = overlaps + [(a + b) / 2 for a, b in zip(metropolis_overlaps_X1, metropolis_overlaps_X2)]
 
         # step 1
         
@@ -101,7 +113,7 @@ def houdayer_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func,
         for i in range(n0):
             beta = beta_update_func(beta)
 
-    return best_X1, best_X2, energies, local_overlaps
+    return best_X1, best_X2, energies, local_overlaps, overlaps
 
 
         
