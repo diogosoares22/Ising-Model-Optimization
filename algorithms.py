@@ -94,7 +94,7 @@ def houdayer_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func,
 
         energy = funcs.hamiltonian_of_gibbs_model(X1) + funcs.hamiltonian_of_gibbs_model(X2)
 
-        overlaps = overlaps + [(a + b) / 2 for a, b in zip(metropolis_overlaps_X1, metropolis_overlaps_X2)]
+        overlaps = overlaps + [(a + b) / 2 for a, b in zip(metropolis_overlaps_X1[1:], metropolis_overlaps_X2[1:])]
 
         # step 1
         
