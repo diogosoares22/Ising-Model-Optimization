@@ -8,10 +8,10 @@ def metropolis_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_fun
     if seed != None:
         np.random.seed(seed)
     
+    N = len(ground_truth)
+
     if branching_factor is None:
         branching_factor = N
-
-    N = len(ground_truth)
 
     funcs = Functions(graph, a, b, N)
     
