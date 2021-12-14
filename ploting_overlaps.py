@@ -36,8 +36,8 @@ def plot_results_combined(models, r_values, results_for_model):
 if __name__ == "__main__":
     N = 100
     d = 3
-    steps = 100
-    iterations = 10
+    steps = 1000
+    iterations = 50
     beta_update_func = lambda x : x + 0.01
     initial_beta = 0.01
     r_values = [(i + 1) / 20 for i in range(8)]
@@ -60,16 +60,17 @@ if __name__ == "__main__":
         
             ground_truth, graph = generate_graph(N, a, b)
 
-            _ ,_ , metropolis_overlaps = metropolis_algorithm(graph, ground_truth, a, b, steps, initial_beta, beta_update_func, debug=False)
+            _ ,_ , metropolis_overlaps = metropolis_algorithm(graph, ground_truth, a, b, steps, initial_beta, beta_update_func, debug=False, branching_factor=5)
 
-            _, _, _, _, houdayer_overlaps = houdayer_algorithm(graph, ground_truth, a, b, steps, initial_beta, beta_update_func, n0=1, debug=False)
+            _, _, _, _, houdayer_overlaps = houdayer_algorithm(graph, ground_truth, a, b, steps, initial_beta, beta_update_func, n0=1, debug=False, branching_factor=5)
 
-            _, _, _, _, mixed_overlaps = houdayer_algorithm(graph, ground_truth, a, b, steps, initial_beta, beta_update_func, n0=5, debug=False)
+            _, _, _, _, mixed_overlaps = houdayer_algorithm(graph, ground_truth, a, b, steps, initial_beta, beta_update_func, n0=5, debug=False, branching_factor=5)
         
             metropolis_results[r_values[i]].append(metropolis_overlaps[-1])
             houdayer_results[r_values[i]].append(houdayer_overlaps[-1])
             mixed_results[r_values[i]].append(mixed_overlaps[-1])
             print("Iteration {}".format(iteration + 1))
+            
         
         print("R value {}".format(r_values[i]))
 

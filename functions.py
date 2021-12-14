@@ -1,6 +1,7 @@
 import numpy as np
 from np_cache import np_cache
 import random
+from scipy.linalg import circulant
 
 
 class Functions:
@@ -12,7 +13,12 @@ class Functions:
         self.N = N
         self.precomputed_division_log = np.log(self.a/ self.b)
         self.precomputed_division_with_minus_log = np.log((1 - self.a/N)/(1 - self.b/N))
-
+        self.h = np.zeros(self.graph.shape)
+        for i in range(N):
+            for j in range(i+1, N):
+                is_edge = self.graph[i,j]
+                self.h[i,j] = 1/2 * (is_edge * self.precomputed_division_log + (1 - is_edge) * self.precomputed_division_with_minus_log) 
+                
     @np_cache()
     def hamiltonian_of_gibbs_model(self, x):
         """ compute the energy of the hamiltonian for the gibbs model """
@@ -20,15 +26,22 @@ class Functions:
         N = len(x)
         for i in range(N):
             for j in range(i+1, N):
-                is_edge = self.graph[i,j]
                 mult = x[i]*x[j]
-                hij = 1/2 * (is_edge * self.precomputed_division_log + (1 - is_edge) * self.precomputed_division_with_minus_log) 
-                current_sum -= hij * mult
-        return current_sum
+                current_sum += self.h[i,j] * mult
+        return -current_sum
+
+    
+    @np_cache()
+    def hamiltonian_of_gibbs_model_vectorized(self, x):
+        """ compute the energy of the hamiltonian for the gibbs model """
+        x_to_multiply = x.reshape((x.shape[0], 1))
+        mult = x * x_to_multiply
+        res = self.h * mult
+        return -np.sum(res)
 
     def compute_acceptance_probability(self, beta, current_state, future_state):
         """ compute the acceptance probability for two states given a cost function """
-        return min(1, np.exp(-beta * (self.hamiltonian_of_gibbs_model(future_state) - self.hamiltonian_of_gibbs_model(current_state))))
+        return min(1, np.exp(-beta * (self.hamiltonian_of_gibbs_model_vectorized(future_state) - self.hamiltonian_of_gibbs_model_vectorized(current_state))))
 
 def compute_overlap(x_star, x_pred):
     """ compute the overlap between x and x_star """

@@ -3,10 +3,13 @@ import numpy as np
 from generate_graph import generate_vector, generate_graph
 from functions import xvariant, compute_overlap, Functions, compute_local_overlap, get_random_difference_node, bfs
 
-def metropolis_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func, X=None, seed=None, debug=True):
+def metropolis_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func, X=None, seed=None, debug=True, branching_factor=None):
     """ Standard metropolis algorithm  with uniform random walk """
     if seed != None:
         np.random.seed(seed)
+    
+    if branching_factor is None:
+        branching_factor = N
 
     N = len(ground_truth)
 
@@ -15,7 +18,7 @@ def metropolis_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_fun
     if X is None:
         X = generate_vector(N)
     best_X = X 
-    lowest_energy = energy = funcs.hamiltonian_of_gibbs_model(X)
+    lowest_energy = energy = funcs.hamiltonian_of_gibbs_model_vectorized(X)
     overlap = compute_overlap(ground_truth, X)
 
     overlaps = [overlap]
@@ -23,14 +26,15 @@ def metropolis_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_fun
 
     for i in range(steps):
             
-        X_variants = [xvariant(X, j) for j in range(N)]
-        X_variants_acceptance_prob = [funcs.compute_acceptance_probability(beta, X, x_variant) * (1/N) for x_variant in X_variants]
+        X_variants = [xvariant(X, j) for j in np.random.choice(range(N), branching_factor)]
+        X_variants_acceptance_prob = [funcs.compute_acceptance_probability(beta, X, x_variant) * (1/branching_factor) for x_variant in X_variants]
         X_variants_acceptance_prob = [1 - sum(X_variants_acceptance_prob)] + X_variants_acceptance_prob
         X_variants = [X] + X_variants
 
         X = X_variants[np.random.choice(range(len(X_variants)), p = X_variants_acceptance_prob)]
 
-        energy = funcs.hamiltonian_of_gibbs_model(X)
+        energy = funcs.hamiltonian_of_gibbs_model_vectorized(X)
+
         overlap = compute_overlap(ground_truth, X)
 
         energies.append(energy)
@@ -45,11 +49,11 @@ def metropolis_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_fun
         beta = beta_update_func(beta)
 
     if (debug):
-        print("Ground_truth energy " + str(funcs.hamiltonian_of_gibbs_model(ground_truth)))
+        print("Ground_truth energy " + str(funcs.hamiltonian_of_gibbs_model_vectorized(ground_truth)))
         print("Best energy found " + str(lowest_energy))
     return best_X, energies, overlaps
 
-def houdayer_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func, n0=1, seed=None, debug=True):
+def houdayer_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func, n0=1, seed=None, debug=True, branching_factor=None):
     """ Houdayer Algorithm """
     
     if seed != None:
@@ -84,13 +88,13 @@ def houdayer_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func,
             X1[node] *= -1
             X2[node] *= -1
 
-        energy = funcs.hamiltonian_of_gibbs_model(X1) + funcs.hamiltonian_of_gibbs_model(X2)
+        energy = funcs.hamiltonian_of_gibbs_model_vectorized(X1) + funcs.hamiltonian_of_gibbs_model_vectorized(X2)
 
         # step 3
 
-        X1, _, metropolis_overlaps_X1 = metropolis_algorithm(graph, ground_truth, a, b, n0, beta, beta_update_func, X=X1, debug=False)
+        X1, _, metropolis_overlaps_X1 = metropolis_algorithm(graph, ground_truth, a, b, n0, beta, beta_update_func, X=X1, debug=False, branching_factor=branching_factor)
 
-        X2, _ , metropolis_overlaps_X2 = metropolis_algorithm(graph, ground_truth, a, b, n0, beta, beta_update_func, X=X2, debug=False)
+        X2, _ , metropolis_overlaps_X2 = metropolis_algorithm(graph, ground_truth, a, b, n0, beta, beta_update_func, X=X2, debug=False, branching_factor=branching_factor)
 
         energy = funcs.hamiltonian_of_gibbs_model(X1) + funcs.hamiltonian_of_gibbs_model(X2)
 
@@ -115,15 +119,50 @@ def houdayer_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func,
 
     return best_X1, best_X2, energies, local_overlaps, overlaps
 
+def grid_search(graph, ground_truth, a, b, number_of_trials):
+    """ Grid Search algorithm to find the best energy """
+    N = len(ground_truth)
+
+    funcs = Functions(graph, a, b, N)
+
+    best_vector = vector = generate_vector(N)
+
+    lowest_energy = energy = funcs.hamiltonian_of_gibbs_model_vectorized(vector) 
+
+    for i in range(number_of_trials):
+        vector = generate_vector(N)
+        energy = funcs.hamiltonian_of_gibbs_model_vectorized(vector)
+
+        if (energy < lowest_energy):
+            lowest_energy = energy
+            best_vector = vector
+    return best_vector, lowest_energy, compute_overlap(best_vector, ground_truth)
+
+
 
         
 if __name__ == "__main__":
-    N = 200
-    a = 2
+    N = 10000
+    a = 5
     b = 1
 
     ground_truth, graph = generate_graph(N, a, b, seed=2)
+    
+    import time
 
-    X1, _ , _ , _ = houdayer_algorithm(graph, ground_truth, a, b, 500, 0.1, lambda x : x + 0.01)  
+    start = time.time()
 
-    print(sum(local_overlaps[-1]))
+    grid_search(graph, ground_truth, a, b, 1)
+    
+    end1 = time.time()
+
+    delta = end1 - start
+
+    print("Grid Search took {}".format(delta))
+
+    print(metropolis_algorithm(graph, ground_truth, a, b, 100, 1, lambda x: x + 0.1, debug=True, branching_factor=5))
+
+    end2 = time.time()
+    delta = end2 - end1
+
+    print("Metropolis took {}".format(delta))
