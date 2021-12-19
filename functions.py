@@ -11,8 +11,8 @@ class Functions:
         self.a = a
         self.b = b
         self.N = N
-        self.precomputed_division_log = np.log(self.a/ self.b)
-        self.precomputed_division_with_minus_log = np.log((1 - self.a/N)/(1 - self.b/N))
+        self.precomputed_division_log = np.log(a/b)
+        self.precomputed_division_with_minus_log = np.log((1 - a/N)/(1 - b/N))
         self.h = np.zeros(self.graph.shape)
         for i in range(N):
             for j in range(i+1, N):
@@ -57,6 +57,8 @@ def get_random_difference_node(y):
     for i in range(len(y)):
         if y[i] == -1:
             numbers.append(i)
+    if (len(numbers) == 0):
+        return -1
     return random.choice(numbers)
 
 def bfs(visited, graph, node, allowed_edges):
