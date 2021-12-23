@@ -13,11 +13,7 @@ class Functions:
         self.N = N
         self.precomputed_division_log = np.log(a/b)
         self.precomputed_division_with_minus_log = np.log((1 - a/N)/(1 - b/N))
-        self.h = np.zeros(self.graph.shape)
-        for i in range(N):
-            for j in range(i+1, N):
-                is_edge = self.graph[i,j]
-                self.h[i,j] = 1/2 * (is_edge * self.precomputed_division_log + (1 - is_edge) * self.precomputed_division_with_minus_log) 
+        self.h = 1/2 * (self.graph * self.precomputed_division_log + (1 - self.graph) * self.precomputed_division_with_minus_log)
                 
     @np_cache()
     def hamiltonian_of_gibbs_model(self, x):
