@@ -16,7 +16,7 @@ def plot_results(model_name, r_values, results):
     plt.plot(x, y)
     plt.ylabel("Limiting overlap")
     plt.xlabel("r value")
-    plt.title(model_name + " limiting overlap in function of r")
+    plt.title(model_name + " phase transition study in function of r")
     plt.show()
 
 def plot_results_combined(models, r_values, results_for_model):
@@ -26,7 +26,7 @@ def plot_results_combined(models, r_values, results_for_model):
     
     plt.ylabel("Limiting overlap")
     plt.xlabel("r value")
-    plt.title("Multiple models limiting overlap in function of r")
+    plt.title("Phase transition study in function of r")
     plt.legend()
     plt.show()
 
@@ -35,12 +35,12 @@ def plot_results_combined(models, r_values, results_for_model):
 
 if __name__ == "__main__":
     N = 100
-    d = 3
+    d = 20
     steps = 1000
     iterations = 50
     beta_update_func = lambda x : x + 0.01
     initial_beta = 0.01
-    r_values = [(i + 1) / 20 for i in range(8)]
+    r_values = [(i + 1) / 20 for i in range(5,17)]
     a_b_combination = create_a_b_combination(d, r_values)
     
     metropolis_results = {}
@@ -54,6 +54,10 @@ if __name__ == "__main__":
     for i in range(len(a_b_combination)): 
 
         for iteration in range(iterations):
+            import time
+
+            start = time.time()
+
 
             b = a_b_combination[i][0]
             a = a_b_combination[i][1]
@@ -70,6 +74,13 @@ if __name__ == "__main__":
             houdayer_results[r_values[i]].append(houdayer_overlaps[-1])
             mixed_results[r_values[i]].append(mixed_overlaps[-1])
             print("Iteration {}".format(iteration + 1))
+
+            end = time.time()
+
+            delta = end - start
+
+            print(delta)
+
             
         
         print("R value {}".format(r_values[i]))
@@ -87,7 +98,7 @@ if __name__ == "__main__":
         print("Mixed Results: {}".format(mixed_results[r_values[i]]))
 
     
-    plot_results("Metropolis Hastings", r_values, metropolis_results)
-    plot_results("Houdayer", r_values, houdayer_results)
-    plot_results("Mixed", r_values, mixed_results)
+    #plot_results("Metropolis Hastings", r_values, metropolis_results)
+    #plot_results("Houdayer", r_values, houdayer_results)
+    #plot_results("Mixed", r_values, mixed_results)
     plot_results_combined(["Metropolis", "Houdayer", "Mixed"], r_values, {"Metropolis" : metropolis_results, "Houdayer" : houdayer_results, "Mixed" : mixed_results})

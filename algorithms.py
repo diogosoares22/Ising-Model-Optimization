@@ -80,15 +80,12 @@ def houdayer_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func,
 
         ind = get_random_difference_node(local_overlaps[-1])
 
-        energy = funcs.hamiltonian_of_gibbs_model(X1) + funcs.hamiltonian_of_gibbs_model(X2)
+        if (ind != -1):
+            cluster_nodes = bfs([], graph, ind, local_overlaps[-1])
 
-        cluster_nodes = bfs([], graph, ind, local_overlaps[-1])
-
-        for node in cluster_nodes:
-            X1[node] *= -1
-            X2[node] *= -1
-
-        energy = funcs.hamiltonian_of_gibbs_model_vectorized(X1) + funcs.hamiltonian_of_gibbs_model_vectorized(X2)
+            for node in cluster_nodes:
+                X1[node] *= -1
+                X2[node] *= -1
 
         # step 3
 
@@ -96,7 +93,7 @@ def houdayer_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func,
 
         X2, _ , metropolis_overlaps_X2 = metropolis_algorithm(graph, ground_truth, a, b, n0, beta, beta_update_func, X=X2, debug=False, branching_factor=branching_factor)
 
-        energy = funcs.hamiltonian_of_gibbs_model(X1) + funcs.hamiltonian_of_gibbs_model(X2)
+        energy = funcs.hamiltonian_of_gibbs_model_vectorized(X1) + funcs.hamiltonian_of_gibbs_model_vectorized(X2)
 
         overlaps = overlaps + [(a + b) / 2 for a, b in zip(metropolis_overlaps_X1[1:], metropolis_overlaps_X2[1:])]
 
@@ -142,11 +139,13 @@ def grid_search(graph, ground_truth, a, b, number_of_trials):
 
         
 if __name__ == "__main__":
-    N = 10000
-    a = 5
-    b = 1
+    N = 100
+    a = 41
+    b = 2
 
     ground_truth, graph = generate_graph(N, a, b, seed=2)
+
+    functions = Functions(graph, a ,b, N)
     
     import time
 
@@ -160,7 +159,7 @@ if __name__ == "__main__":
 
     print("Grid Search took {}".format(delta))
 
-    print(metropolis_algorithm(graph, ground_truth, a, b, 100, 1, lambda x: x + 0.1, debug=True, branching_factor=5))
+    print(metropolis_algorithm(graph, ground_truth, a, b, 10000, 1, lambda x: x + 0.1, debug=True, branching_factor=5))
 
     end2 = time.time()
     delta = end2 - end1
