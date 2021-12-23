@@ -42,10 +42,6 @@ def metropolis_algorithm(graph, a, b, steps, beta, beta_update_func, X=None, see
             best_X = X
         
         beta = beta_update_func(beta)
-
-    if (debug):
-        print("Ground_truth energy " + str(funcs.hamiltonian_of_gibbs_model_vectorized(ground_truth)))
-        print("Best energy found " + str(lowest_energy))
     return best_X, energies
 
 
