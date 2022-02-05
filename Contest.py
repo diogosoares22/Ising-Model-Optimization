@@ -1,7 +1,8 @@
 import numpy as np
 
 from functions import xvariant, compute_overlap, Functions, compute_local_overlap, get_random_difference_node, bfs
-from generate_graph import generate_vector
+from algorithms import grid_search
+from generate_graph import generate_vector, generate_graph
 
 def metropolis_algorithm(graph, a, b, steps, beta, beta_update_func, X=None, seed=None, debug=True, branching_factor=5):
     """ Standard metropolis algorithm  with uniform random walk """
@@ -46,10 +47,17 @@ def metropolis_algorithm(graph, a, b, steps, beta, beta_update_func, X=None, see
 
 
 if __name__ == "__main__":
-    graph = np.load("A_test.npy")    
-    a = 5
-    b = 1
-    #best_X = np.load("A_test.npy")
-    best_X, energies = metropolis_algorithm(graph, a, b, 100, 1, lambda x: x + 0.1, debug=True, branching_factor=5)
-    print(best_X.shape)
-    np.save('./submission/MarkovPolo.npy', best_X)
+    graph = np.load("A.npy")
+    X1 = np.load("MarkovPolo.npy")    
+    a = 41.27
+    b = 1.79
+    N = len(X1)
+
+
+    vector, matrix = generate_graph(N, a, b)
+
+    funcs = Functions(matrix, a, b, N)
+
+    energy = funcs.hamiltonian_of_gibbs_model_vectorized(vector)
+
+    print(energy)

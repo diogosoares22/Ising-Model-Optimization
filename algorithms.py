@@ -116,9 +116,9 @@ def houdayer_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func,
 
     return best_X1, best_X2, energies, local_overlaps, overlaps
 
-def grid_search(graph, ground_truth, a, b, number_of_trials):
+def grid_search(graph, a, b, number_of_trials):
     """ Grid Search algorithm to find the best energy """
-    N = len(ground_truth)
+    N = graph.shape[0]
 
     funcs = Functions(graph, a, b, N)
 
@@ -133,7 +133,7 @@ def grid_search(graph, ground_truth, a, b, number_of_trials):
         if (energy < lowest_energy):
             lowest_energy = energy
             best_vector = vector
-    return best_vector, lowest_energy, compute_overlap(best_vector, ground_truth)
+    return best_vector, lowest_energy
 
 
 

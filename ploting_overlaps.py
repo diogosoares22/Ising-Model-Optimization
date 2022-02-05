@@ -34,9 +34,9 @@ def plot_results_combined(models, r_values, results_for_model):
 # let's consider N = 100, d = 3, let's consider 500 steps, and 100 iterations
 
 if __name__ == "__main__":
-    N = 100
-    d = 20
-    steps = 1000
+    N = 200
+    d = 44
+    steps = 2000
     iterations = 50
     beta_update_func = lambda x : x + 0.01
     initial_beta = 0.01
