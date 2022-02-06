@@ -27,7 +27,7 @@ def metropolis_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_fun
     for i in range(steps):
             
         X_variants = [xvariant(X, j) for j in np.random.choice(range(N), branching_factor)]
-        X_variants_acceptance_prob = [funcs.compute_acceptance_probability(beta, X, x_variant) * (1/branching_factor) for x_variant in X_variants]
+        X_variants_acceptance_prob = [funcs.compute_acceptance_probability_optimized(beta, X, x_variant) * (1/branching_factor) for x_variant in X_variants]
         X_variants_acceptance_prob = [1 - sum(X_variants_acceptance_prob)] + X_variants_acceptance_prob
         X_variants = [X] + X_variants
 
@@ -51,6 +51,7 @@ def metropolis_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_fun
     if (debug):
         print("Ground_truth energy " + str(funcs.hamiltonian_of_gibbs_model_vectorized(ground_truth)))
         print("Best energy found " + str(lowest_energy))
+        print("Final overlap was " + str(overlaps[-1]))
     return best_X, energies, overlaps
 
 def houdayer_algorithm(graph, ground_truth, a, b, steps, beta, beta_update_func, n0=1, seed=None, debug=True, branching_factor=None):
@@ -139,7 +140,7 @@ def grid_search(graph, a, b, number_of_trials):
 
         
 if __name__ == "__main__":
-    N = 100
+    N = 4000
     a = 41
     b = 2
 
@@ -151,17 +152,9 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    grid_search(graph, ground_truth, a, b, 1)
-    
-    end1 = time.time()
+    print(metropolis_algorithm(graph, ground_truth, a, b, 1000, 1, lambda x: x + 0.1, debug=True, branching_factor=2))
 
-    delta = end1 - start
-
-    print("Grid Search took {}".format(delta))
-
-    print(metropolis_algorithm(graph, ground_truth, a, b, 10000, 1, lambda x: x + 0.1, debug=True, branching_factor=5))
-
-    end2 = time.time()
-    delta = end2 - end1
+    end = time.time()
+    delta = end - start
 
     print("Metropolis took {}".format(delta))

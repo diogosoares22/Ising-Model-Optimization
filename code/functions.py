@@ -36,8 +36,20 @@ class Functions:
         return -np.sum(res)
 
     def compute_acceptance_probability(self, beta, current_state, future_state):
-        """ compute the acceptance probability for two states given a cost function """
+        """ compute the acceptance probability for two states """
         return min(1, np.exp(-beta * (self.hamiltonian_of_gibbs_model_vectorized(future_state) - self.hamiltonian_of_gibbs_model_vectorized(current_state))))
+
+    def compute_acceptance_probability_optimized(self, beta, current_state, future_state):
+        """ compute the acceptence probability for two states """
+        for i in range(len(current_state)):
+            if current_state[i] != future_state[i]:
+                differential =  current_state[i] - future_state[i]
+                break
+        x_to_multiply = np.array(current_state)
+        x_to_multiply[i] = 0
+        h_line = self.h[i]
+        return min(1, np.exp(- beta * (differential * np.dot(h_line,x_to_multiply))))
+
 
 def compute_overlap(x_star, x_pred):
     """ compute the overlap between x and x_star """
